@@ -22,8 +22,9 @@
             font-size: 36px;
             margin: 10px 0;
             font-weight: bold;
-            color: #0000ff; /* Solid Blue */
-            -webkit-text-stroke: 2px #ffa500; /* Orange Outline */
+            color: #0000ff; 
+            -webkit-text-stroke: 2px #ffa500; 
+            paint-order: stroke fill;
             text-shadow: 2px 2px 0px #000;
         }
 
@@ -51,8 +52,8 @@
         }
 
         .btn {
-            width: 70px;
-            height: 70px;
+            width: 65px;
+            height: 65px;
             background: #222;
             border: 2px solid #555;
             color: white;
@@ -85,47 +86,46 @@
         </div>
     </div>
 
-    <audio id="bgMusic" src="assets/cali8 Bit.mp3" loop></audio>
+    <audio id="bgMusic" src="assets/cali8 Bit.mp3" loop preload="auto"></audio>
 
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// Double Tile Size for Wider Paths
-const TILE = 40; 
-canvas.width = TILE * 9; 
-canvas.height = TILE * 11;
+const TILE = 20; 
+canvas.width = 340;
+canvas.height = 380;
 
 const sprite = new Image();
 sprite.src = 'assets/sprite.png'; 
 let spriteLoaded = false;
 sprite.onload = () => { spriteLoaded = true; };
 
-// 1.25x Sprite Size
-const SPRITE_SIZE = TILE * 1.25;
+// Sprite is 3/4 the size of the 20px opening (15px)
+const SPRITE_SIZE = TILE * 0.75;
+const SPRITE_OFFSET = (TILE - SPRITE_SIZE) / 2;
 
-// Simplified Maze for wider paths
 const maze = [
-    [1,1,1,1,1,1,1,1,1],
-    [1,0,0,0,0,0,0,0,1],
-    [1,0,1,1,0,1,1,0,1],
-    [1,0,0,0,0,0,0,0,1],
-    [1,1,0,1,1,1,0,1,1],
-    [0,0,0,0,0,0,0,0,0],
-    [1,1,0,1,1,1,0,1,1],
-    [1,0,0,0,0,0,0,0,1],
-    [1,0,1,1,0,1,1,0,1],
-    [1,0,0,0,0,0,0,0,1],
-    [1,1,1,1,1,1,1,1,1]
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1],
+    [1,0,1,1,0,1,1,0,1,0,1,1,0,1,1,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,1,1,0,1,0,1,1,1,0,1,0,1,1,0,1],
+    [1,0,0,0,0,1,0,0,1,0,0,1,0,0,0,0,1],
+    [1,1,1,1,0,1,1,0,1,0,1,1,0,1,1,1,1],
+    [2,2,2,1,0,1,0,0,0,0,0,1,0,1,2,2,2],
+    [1,1,1,1,0,1,0,1,1,1,0,1,0,1,1,1,1],
+    [0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0],
+    [1,1,1,1,0,1,0,1,1,1,0,1,0,1,1,1,1],
+    [1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1],
+    [1,0,1,1,0,1,1,0,1,0,1,1,0,1,1,0,1],
+    [1,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,1],
+    [1,1,0,1,0,1,1,1,1,1,1,1,0,1,0,1,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
 ];
 
-let player = { 
-    x: 4 * TILE, 
-    y: 5 * TILE, 
-    dx: 0, 
-    dy: 0, 
-    score: 0 
-};
+let player = { x: 8 * TILE, y: 13 * TILE, dx: 0, dy: 0, score: 0 };
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -138,23 +138,21 @@ function draw() {
             } else if(maze[r][c] === 0) {
                 ctx.fillStyle = '#fff';
                 ctx.beginPath();
-                ctx.arc(c*TILE + TILE/2, r*TILE + TILE/2, 4, 0, 6.28);
+                ctx.arc(c*TILE + TILE/2, r*TILE + TILE/2, 2, 0, 6.28);
                 ctx.fill();
             }
         }
     }
 
-    // Center the 1.25x sprite on the path
-    const offset = (SPRITE_SIZE - TILE) / 2;
     if(spriteLoaded) {
-        ctx.drawImage(sprite, player.x - offset, player.y - offset, SPRITE_SIZE, SPRITE_SIZE);
+        ctx.drawImage(sprite, player.x + SPRITE_OFFSET, player.y + SPRITE_OFFSET, SPRITE_SIZE, SPRITE_SIZE);
     } else {
         ctx.fillStyle = '#ffff00';
-        ctx.fillRect(player.x, player.y, TILE, TILE);
+        ctx.fillRect(player.x + SPRITE_OFFSET, player.y + SPRITE_OFFSET, SPRITE_SIZE, SPRITE_SIZE);
     }
 
     ctx.fillStyle = "white";
-    ctx.font = "bold 16px Arial";
+    ctx.font = "14px Arial";
     ctx.fillText("SCORE: " + player.score, 10, canvas.height - 10);
 
     update();
@@ -162,13 +160,14 @@ function draw() {
 }
 
 function canMove(nx, ny) {
-    let col = Math.floor((nx + 5) / TILE);
-    let row = Math.floor((ny + 5) / TILE);
-    let col2 = Math.floor((nx + TILE - 5) / TILE);
-    let row2 = Math.floor((ny + TILE - 5) / TILE);
+    let col = Math.floor((nx + 2) / TILE);
+    let row = Math.floor((ny + 2) / TILE);
+    let col2 = Math.floor((nx + TILE - 2) / TILE);
+    let row2 = Math.floor((ny + TILE - 2) / TILE);
     
-    if (row < 0 || row >= maze.length || col < 0 || col >= maze[0].length) return true; // For tunnel
-    
+    if (row < 0 || row >= maze.length) return true;
+    if (col < 0 || col >= maze[0].length) return true;
+
     return maze[row][col] !== 1 && maze[row][col2] !== 1 && 
            maze[row2][col] !== 1 && maze[row2][col2] !== 1;
 }
@@ -179,8 +178,8 @@ function update() {
         player.y += player.dy;
     }
 
-    if(player.x < -TILE/2) player.x = canvas.width - TILE/2;
-    if(player.x > canvas.width) player.x = -TILE/2;
+    if(player.x < 0) player.x = canvas.width - TILE;
+    if(player.x >= canvas.width) player.x = 0;
 
     let cx = Math.floor((player.x + TILE/2) / TILE);
     let cy = Math.floor((player.y + TILE/2) / TILE);
@@ -191,12 +190,11 @@ function update() {
 }
 
 const move = (x, y) => { 
-    player.dx = x * 3; // Slightly faster movement for wider paths
-    player.dy = y * 3; 
+    player.dx = x * 2; 
+    player.dy = y * 2; 
     const music = document.getElementById('bgMusic');
-    if (music.paused) {
-        music.play().catch(e => {});
-    }
+    // Force play on every interaction to bypass mobile blocks
+    music.play().catch(e => console.log("Audio trigger failed"));
 };
 
 document.getElementById('up').onpointerdown = (e) => { e.preventDefault(); move(0, -1); };
@@ -215,4 +213,3 @@ draw();
 </script>
 </body>
 </html>
-
