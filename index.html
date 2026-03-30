@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TU-PAC</title>
     <style>
-        /* CSS stays inside the HTML to ensure it loads */
         body {
             background-color: #000;
             color: #ffff00;
@@ -20,10 +19,12 @@
         }
 
         h1 {
-            font-size: 28px;
+            font-size: 36px;
             margin: 10px 0;
-            letter-spacing: 4px;
-            text-shadow: 2px 2px #f00;
+            font-weight: bold;
+            color: #0000ff; /* Solid Blue */
+            -webkit-text-stroke: 2px #ffa500; /* Orange Outline */
+            text-shadow: 2px 2px 0px #000;
         }
 
         #game-container {
@@ -50,8 +51,8 @@
         }
 
         .btn {
-            width: 65px;
-            height: 65px;
+            width: 70px;
+            height: 70px;
             background: #222;
             border: 2px solid #555;
             color: white;
@@ -84,47 +85,51 @@
         </div>
     </div>
 
+    <audio id="bgMusic" src="assets/cali8 Bit.mp3" loop></audio>
+
 <script>
-/* JavaScript stays inside the HTML to ensure it runs */
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-canvas.width = 340;
-canvas.height = 380;
-const TILE = 20;
+// Double Tile Size for Wider Paths
+const TILE = 40; 
+canvas.width = TILE * 9; 
+canvas.height = TILE * 11;
 
 const sprite = new Image();
 sprite.src = 'assets/sprite.png'; 
 let spriteLoaded = false;
 sprite.onload = () => { spriteLoaded = true; };
 
-// 1 = Wall, 0 = Pellet, 2 = Empty
+// 1.25x Sprite Size
+const SPRITE_SIZE = TILE * 1.25;
+
+// Simplified Maze for wider paths
 const maze = [
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1],
-    [1,0,1,1,0,1,1,0,1,0,1,1,0,1,1,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,1,1,0,1,0,1,1,1,0,1,0,1,1,0,1],
-    [1,0,0,0,0,1,0,0,1,0,0,1,0,0,0,0,1],
-    [1,1,1,1,0,1,1,0,1,0,1,1,0,1,1,1,1],
-    [2,2,2,1,0,1,0,0,0,0,0,1,0,1,2,2,2],
-    [1,1,1,1,0,1,0,1,1,1,0,1,0,1,1,1,1],
-    [0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0],
-    [1,1,1,1,0,1,0,1,1,1,0,1,0,1,1,1,1],
-    [1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1],
-    [1,0,1,1,0,1,1,0,1,0,1,1,0,1,1,0,1],
-    [1,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,1],
-    [1,1,0,1,0,1,1,1,1,1,1,1,0,1,0,1,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+    [1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,0,0,1],
+    [1,0,1,1,0,1,1,0,1],
+    [1,0,0,0,0,0,0,0,1],
+    [1,1,0,1,1,1,0,1,1],
+    [0,0,0,0,0,0,0,0,0],
+    [1,1,0,1,1,1,0,1,1],
+    [1,0,0,0,0,0,0,0,1],
+    [1,0,1,1,0,1,1,0,1],
+    [1,0,0,0,0,0,0,0,1],
+    [1,1,1,1,1,1,1,1,1]
 ];
 
-let player = { x: 8 * TILE, y: 13 * TILE, dx: 0, dy: 0, score: 0 };
+let player = { 
+    x: 4 * TILE, 
+    y: 5 * TILE, 
+    dx: 0, 
+    dy: 0, 
+    score: 0 
+};
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Draw Maze & Pellets
     for(let r=0; r<maze.length; r++) {
         for(let c=0; c<maze[r].length; c++) {
             if(maze[r][c] === 1) {
@@ -133,23 +138,23 @@ function draw() {
             } else if(maze[r][c] === 0) {
                 ctx.fillStyle = '#fff';
                 ctx.beginPath();
-                ctx.arc(c*TILE + TILE/2, r*TILE + TILE/2, 2, 0, 6.28);
+                ctx.arc(c*TILE + TILE/2, r*TILE + TILE/2, 4, 0, 6.28);
                 ctx.fill();
             }
         }
     }
 
-    // Draw Player (Sprite or Fallback Box)
+    // Center the 1.25x sprite on the path
+    const offset = (SPRITE_SIZE - TILE) / 2;
     if(spriteLoaded) {
-        ctx.drawImage(sprite, player.x, player.y, TILE, TILE);
+        ctx.drawImage(sprite, player.x - offset, player.y - offset, SPRITE_SIZE, SPRITE_SIZE);
     } else {
         ctx.fillStyle = '#ffff00';
         ctx.fillRect(player.x, player.y, TILE, TILE);
     }
 
-    // Score UI
     ctx.fillStyle = "white";
-    ctx.font = "14px Arial";
+    ctx.font = "bold 16px Arial";
     ctx.fillText("SCORE: " + player.score, 10, canvas.height - 10);
 
     update();
@@ -157,10 +162,13 @@ function draw() {
 }
 
 function canMove(nx, ny) {
-    let col = Math.floor((nx + 2) / TILE);
-    let row = Math.floor((ny + 2) / TILE);
-    let col2 = Math.floor((nx + TILE - 2) / TILE);
-    let row2 = Math.floor((ny + TILE - 2) / TILE);
+    let col = Math.floor((nx + 5) / TILE);
+    let row = Math.floor((ny + 5) / TILE);
+    let col2 = Math.floor((nx + TILE - 5) / TILE);
+    let row2 = Math.floor((ny + TILE - 5) / TILE);
+    
+    if (row < 0 || row >= maze.length || col < 0 || col >= maze[0].length) return true; // For tunnel
+    
     return maze[row][col] !== 1 && maze[row][col2] !== 1 && 
            maze[row2][col] !== 1 && maze[row2][col2] !== 1;
 }
@@ -171,11 +179,9 @@ function update() {
         player.y += player.dy;
     }
 
-    // Tunnel
-    if(player.x < 0) player.x = canvas.width - TILE;
-    if(player.x >= canvas.width) player.x = 0;
+    if(player.x < -TILE/2) player.x = canvas.width - TILE/2;
+    if(player.x > canvas.width) player.x = -TILE/2;
 
-    // Eat
     let cx = Math.floor((player.x + TILE/2) / TILE);
     let cy = Math.floor((player.y + TILE/2) / TILE);
     if(maze[cy] && maze[cy][cx] === 0) {
@@ -184,12 +190,19 @@ function update() {
     }
 }
 
-// Controls
-const move = (x, y) => { player.dx = x * 2; player.dy = y * 2; };
-document.getElementById('up').onpointerdown = () => move(0, -1);
-document.getElementById('down').onpointerdown = () => move(0, 1);
-document.getElementById('left').onpointerdown = () => move(-1, 0);
-document.getElementById('right').onpointerdown = () => move(1, 0);
+const move = (x, y) => { 
+    player.dx = x * 3; // Slightly faster movement for wider paths
+    player.dy = y * 3; 
+    const music = document.getElementById('bgMusic');
+    if (music.paused) {
+        music.play().catch(e => {});
+    }
+};
+
+document.getElementById('up').onpointerdown = (e) => { e.preventDefault(); move(0, -1); };
+document.getElementById('down').onpointerdown = (e) => { e.preventDefault(); move(0, 1); };
+document.getElementById('left').onpointerdown = (e) => { e.preventDefault(); move(-1, 0); };
+document.getElementById('right').onpointerdown = (e) => { e.preventDefault(); move(1, 0); };
 
 window.onkeydown = (e) => {
     if(e.key === "ArrowUp") move(0, -1);
@@ -202,3 +215,4 @@ draw();
 </script>
 </body>
 </html>
+
