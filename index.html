@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+
+    <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -32,7 +33,6 @@ h1 {
     flex-direction: column;
     align-items: center;
     position: relative;
-    margin-bottom: 30px; /* prevents down button cutoff on mobile */
 }
 
 canvas {
@@ -54,7 +54,7 @@ canvas {
     cursor: pointer;
 }
 
-/* D-PAD - up and down brought CLOSER together (only change you asked for) */
+/* FIXED DPAD POSITION */
 #dpad {
     margin-top: 5px;
     display: grid;
@@ -62,7 +62,7 @@ canvas {
         ". up ."
         "left . right"
         ". down .";
-    gap: 2px; /* reduced from your original 4px → up/down now visibly closer */
+    gap: 4px;
 }
 
 .btn {
@@ -101,8 +101,8 @@ canvas {
     </div>
 </div>
 
-<!-- Audio - kept your exact setup + small reliability tweaks -->
-<audio id="bgMusic" src="assets/cali8bit.mp3" loop autoplay muted playsinline preload="auto"></audio>
+<!-- FORCE AUTOPLAY WORKAROUND -->
+<audio id="bgMusic" src="assets/cali8bit.mp3" loop autoplay muted playsinline></audio>
 
 <script>
 const canvas = document.getElementById('gameCanvas');
@@ -143,75 +143,44 @@ const maze = [
 
 let player = { x: TILE, y: TILE, dx: 0, dy: 0, score: 0 };
 let gameRunning = false;
-let lastMoveTime = 0;
-const MOVE_DELAY = 100; // ← controls speed (original code had no loop → player never moved). 110ms feels like classic Pac-Man on mobile.
-
-const bgMusic = document.getElementById('bgMusic');
-
-// Log audio errors so we can debug if needed
-bgMusic.addEventListener('error', e => console.error("Audio file failed to load:", e));
 
 function canMove(nx, ny) {
     if (nx < 0 || nx + TILE > canvas.width) {
         player.dx = -player.dx;
         return false;
     }
-    if (ny < 0 || ny + TILE > canvas.height) return false;
 
     let col = Math.floor((nx + TILE/2) / TILE);
     let row = Math.floor((ny + TILE/2) / TILE);
 
     if (maze[row] && maze[row][col] === 1) return false;
+
     return true;
 }
 
 function update() {
-    let nx = player.x + player.dx;
-    let ny = player.y + player.dy;
-
-    if (canMove(nx, ny)) {
-        player.x = nx;
-        player.y = ny;
+    if (canMove(player.x + player.dx, player.y + player.dy)) {
+        player.x += player.dx;
+        player.y += player.dy;
     } else {
-        player.dy = 0; // keep your original logic
+        player.dy = 0;
     }
 }
 
 function draw() {
     if (!gameRunning) return;
 
-    // Throttled movement so speed is playable (not "WAY too fast")
-    const now = Date.now();
-    if (now - lastMoveTime > MOVE_DELAY) {
-        update();
-        lastMoveTime = now;
-    }
+    ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Walls (your original code)
-    for (let r = 0; r < maze.length; r++) {
-        for (let c = 0; c < maze[r].length; c++) {
+    for (let r=0;r<maze.length;r++) {
+        for (let c=0;c<maze[r].length;c++) {
             if (maze[r][c] === 1) {
                 ctx.fillStyle = '#0000ff';
-                ctx.fillRect(c * TILE, r * TILE, TILE, TILE);
+                ctx.fillRect(c*TILE, r*TILE, TILE, TILE);
             }
         }
     }
 
-    // Pellets (the 2's) — were missing in original, restored
-    ctx.fillStyle = '#ffff00';
-    for (let r = 0; r < maze.length; r++) {
-        for (let c = 0; c < maze[r].length; c++) {
-            if (maze[r][c] === 2) {
-                ctx.beginPath();
-                ctx.arc(c * TILE + TILE/2, r * TILE + TILE/2, 5, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-    }
-
-    // Sprite
     ctx.drawImage(sprite, player.x + SPRITE_OFFSET, player.y + SPRITE_OFFSET, SPRITE_SIZE, SPRITE_SIZE);
 
     requestAnimationFrame(draw);
@@ -219,32 +188,20 @@ function draw() {
 
 function handleStart() {
     const music = document.getElementById('bgMusic');
-    
+
     music.muted = false;
     music.volume = 1;
 
-    // This runs on real user tap → best chance for mobile autoplay
-    music.play()
-        .then(() => console.log("✅ Music started"))
-        .catch(e => {
-            console.log("Audio error:", e);
-            // One automatic retry (common mobile workaround)
-            setTimeout(() => music.play().catch(err => console.log("Retry also failed:", err)), 150);
-        });
+    music.play().catch(e => console.log("Audio error:", e));
 
     document.getElementById('start-screen').style.display = 'none';
     gameRunning = true;
-    lastMoveTime = Date.now();
     draw();
 }
 
-// Your exact button setup
-document.getElementById('up').addEventListener('pointerdown', () => { player.dx = 0; player.dy = -TILE; });
-document.getElementById('down').addEventListener('pointerdown', () => { player.dx = 0; player.dy = TILE; });
-document.getElementById('left').addEventListener('pointerdown', () => { player.dx = -TILE; player.dy = 0; });
-document.getElementById('right').addEventListener('pointerdown', () => { player.dx = TILE; player.dy = 0; });
+document.getElementById('start-screen')
+    .addEventListener('pointerdown', handleStart);
 
-document.getElementById('start-screen').addEventListener('pointerdown', handleStart);
 </script>
 
 </body>
