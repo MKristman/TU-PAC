@@ -220,12 +220,17 @@ const move = (x, y) => {
     player.dy = y * 2; 
 };
 
-document.getElementById('start-screen').addEventListener('pointerdown', function() {
-    document.getElementById('bgMusic').play().catch(e => console.log(e));
-    this.style.display = 'none';
+function startGame() {
+    const music = document.getElementById('bgMusic');
+    music.play().catch(e => console.log("Audio still blocked or file missing"));
+    document.getElementById('start-screen').style.display = 'none';
     gameRunning = true;
     draw();
-});
+}
+
+const startScreen = document.getElementById('start-screen');
+startScreen.addEventListener('click', startGame);
+startScreen.addEventListener('touchstart', startGame, {passive: false});
 
 const btns = ['up', 'down', 'left', 'right'];
 const dirs = [[0,-1], [0,1], [-1,0], [1,0]];
@@ -245,7 +250,6 @@ window.addEventListener('keydown', (e) => {
     if(e.key === "ArrowRight") move(1, 0);
 });
 
-// Initial draw to render the maze behind the start screen
 ctx.fillStyle = '#000';
 ctx.fillRect(0, 0, canvas.width, canvas.height);
 for(let r=0; r<maze.length; r++) {
