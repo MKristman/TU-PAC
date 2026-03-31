@@ -21,7 +21,7 @@ body {
 
 h1 {
     font-size: 36px;
-    margin: 10px 0;
+    margin: 5px 0;
     color: #0000ff;
     -webkit-text-stroke: 2px #ffa500;
     text-shadow: 2px 2px 0px #000;
@@ -37,7 +37,6 @@ h1 {
 canvas {
     border: 4px solid #2222ff;
     background-color: #000;
-    display: block;
 }
 
 #start-screen {
@@ -54,23 +53,24 @@ canvas {
     cursor: pointer;
 }
 
+/* FIXED DPAD POSITION */
 #dpad {
-    margin-top: 15px;
+    margin-top: 5px;
     display: grid;
     grid-template-areas:
         ". up ."
         "left . right"
         ". down .";
-    gap: 8px;
+    gap: 4px;
 }
 
 .btn {
-    width: 60px;
-    height: 60px;
+    width: 55px;
+    height: 55px;
     background: #222;
     border: 2px solid #555;
     color: white;
-    font-size: 24px;
+    font-size: 22px;
     border-radius: 12px;
     display: flex;
     justify-content: center;
@@ -100,7 +100,8 @@ canvas {
     </div>
 </div>
 
-<audio id="bgMusic" src="assets/cali8bit.mp3" loop preload="auto" playsinline></audio>
+<!-- FORCE AUTOPLAY WORKAROUND -->
+<audio id="bgMusic" src="assets/cali8bit.mp3" loop autoplay muted playsinline></audio>
 
 <script>
 const canvas = document.getElementById('gameCanvas');
@@ -141,11 +142,8 @@ const maze = [
 
 let player = { x: TILE, y: TILE, dx: 0, dy: 0, score: 0 };
 let gameRunning = false;
-let musicStarted = false;
 
 function canMove(nx, ny) {
-
-    // bounce only on OUTER vertical edges
     if (nx < 0 || nx + TILE > canvas.width) {
         player.dx = -player.dx;
         return false;
@@ -166,14 +164,6 @@ function update() {
     } else {
         player.dy = 0;
     }
-
-    let cx = Math.floor((player.x + TILE/2) / TILE);
-    let cy = Math.floor((player.y + TILE/2) / TILE);
-
-    if (maze[cy] && maze[cy][cx] === 0) {
-        maze[cy][cx] = 2;
-        player.score += 10;
-    }
 }
 
 function draw() {
@@ -186,33 +176,22 @@ function draw() {
             if (maze[r][c] === 1) {
                 ctx.fillStyle = '#0000ff';
                 ctx.fillRect(c*TILE, r*TILE, TILE, TILE);
-            } else if (maze[r][c] === 0) {
-                ctx.fillStyle = '#fff';
-                ctx.beginPath();
-                ctx.arc(c*TILE+TILE/2, r*TILE+TILE/2, 2, 0, 6.28);
-                ctx.fill();
             }
         }
     }
 
     ctx.drawImage(sprite, player.x + SPRITE_OFFSET, player.y + SPRITE_OFFSET, SPRITE_SIZE, SPRITE_SIZE);
 
-    ctx.fillStyle = "white";
-    ctx.font = "14px Arial";
-    ctx.fillText("SCORE: " + player.score, 10, canvas.height - 10);
-
-    update();
     requestAnimationFrame(draw);
 }
 
 function handleStart() {
     const music = document.getElementById('bgMusic');
 
-    if (!musicStarted) {
-        music.currentTime = 0;
-        music.play().catch(e => console.log("Audio error:", e));
-        musicStarted = true;
-    }
+    music.muted = false;
+    music.volume = 1;
+
+    music.play().catch(e => console.log("Audio error:", e));
 
     document.getElementById('start-screen').style.display = 'none';
     gameRunning = true;
@@ -222,26 +201,6 @@ function handleStart() {
 document.getElementById('start-screen')
     .addEventListener('pointerdown', handleStart);
 
-const dirs = {
-    up: [0,-1],
-    down: [0,1],
-    left: [-1,0],
-    right: [1,0]
-};
-
-Object.keys(dirs).forEach(id => {
-    document.getElementById(id).addEventListener('pointerdown', () => {
-        player.dx = dirs[id][0] * 2.5;
-        player.dy = dirs[id][1] * 2.5;
-    });
-});
-
-window.addEventListener('keydown', e => {
-    if(e.key==="ArrowUp") player.dy=-2.5, player.dx=0;
-    if(e.key==="ArrowDown") player.dy=2.5, player.dx=0;
-    if(e.key==="ArrowLeft") player.dx=-2.5, player.dy=0;
-    if(e.key==="ArrowRight") player.dx=2.5, player.dy=0;
-});
 </script>
 
 </body>
